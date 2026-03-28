@@ -1,5 +1,5 @@
 LDFLAGS := -lgcc -lrt
-CFLAGS := -ggdb -Wall -O2 -march=native
+CFLAGS := -ggdb -Wall -O2 -fcommon
 OBJS := main.o tamaemu.o i2c.o i2ceeprom.o lcd.o benevolentai.o lcdmatch.o screens.o \
 		ir.o udp.o
 

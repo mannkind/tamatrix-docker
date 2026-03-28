@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 	char *eeprom="tama.eep";
 	char *host="127.0.0.1";
 	char *romdir="rom";
-	struct timespec tstart, tend;
+	struct timespec next_frame, tend;
 	Display display;
 	int err=0;
 
@@ -110,8 +110,14 @@ int main(int argc, char **argv) {
 	tama=tamaInit(rom, eeprom);
 	benevolentAiInit();
 	udpInit(host);
+	clock_gettime(CLOCK_MONOTONIC, &next_frame);
 	while(1) {
-		clock_gettime(CLOCK_MONOTONIC, &tstart);
+		//Advance the absolute target by exactly one frame period
+		next_frame.tv_nsec+=1000000000L/FPS;
+		if (next_frame.tv_nsec>=1000000000L) {
+			next_frame.tv_sec++;
+			next_frame.tv_nsec-=1000000000L;
+		}
 		tamaRun(tama, FCPU/FPS-1);
 		lcdRender(tama->dram, tama->lcd.sizex, tama->lcd.sizey, &display);
 		udpTick();
@@ -137,16 +143,21 @@ int main(int argc, char **argv) {
 		if (k&1) tamaPressBtn(tama, 0);
 		if (k&2) tamaPressBtn(tama, 1);
 		if (k&4) tamaPressBtn(tama, 2);
-		clock_gettime(CLOCK_MONOTONIC, &tend);
-		us=(tend.tv_nsec-tstart.tv_nsec)/1000;
-		us+=(tend.tv_sec-tstart.tv_sec)*1000000L;
-		us=(1000000L/FPS)-us;
-//		printf("Time left in frame: %d us\n", us);
-		if (!speedup && us>0) usleep(us);
+		//Sleep until absolute target time to prevent drift accumulation
+		if (!speedup) {
+			clock_gettime(CLOCK_MONOTONIC, &tend);
+			us=(next_frame.tv_sec-tend.tv_sec)*1000000L
+				+(next_frame.tv_nsec-tend.tv_nsec)/1000;
+			if (us>0) usleep(us);
+		}
 		k=getKey();
 		if (k=='1') tamaPressBtn(tama, 0);
 		if (k=='2') tamaPressBtn(tama, 1);
 		if (k=='3') tamaPressBtn(tama, 2);
+		{
+			int remoteBtn=udpPollBtn();
+			if (remoteBtn>=0) tamaPressBtn(tama, remoteBtn);
+		}
 		if (k=='s') speedup=!speedup;
 		if (k=='d') stopDisplay=!stopDisplay;
 		t++;

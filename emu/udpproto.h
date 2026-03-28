@@ -8,6 +8,7 @@
 #define TAMAUDP_IRSTARTACK 2
 #define TAMAUDP_IRDATA 3
 #define TAMAUDP_BYE 4
+#define TAMAUDP_BTN 5
 
 
 typedef struct __attribute__((packed)) {
@@ -25,6 +26,9 @@ typedef struct __attribute__((packed)) {
 	uint8_t type;
 } TamaIrStartData;
 
+typedef struct __attribute__((packed)) {
+	uint8_t btnNo;
+} TamaBtnData;
 
 
 typedef struct __attribute__((packed)) {
@@ -33,6 +37,7 @@ typedef struct __attribute__((packed)) {
 		TamaUdpDisplay disp;
 		TamaIrData ir;
 		TamaIrStartData irs;
+		TamaBtnData btn;
 	} d;
 } TamaUdpData;
 

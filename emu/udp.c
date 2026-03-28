@@ -27,6 +27,7 @@
 static int sock;
 static struct sockaddr_in servaddr;
 static char olddisp[32][48];
+static int pendingBtn = -1;
 
 
 void udpInit(char *hostname) {
@@ -64,8 +65,16 @@ void udpTick() {
 			benevolentAiAckIrComm(packet.d.irs.type);
 		} else if (packet.type==TAMAUDP_IRDATA) {
 			irRecv(packet.d.ir.data, ntohs(packet.d.ir.dataLen));//, ntohs(packet.d.ir.startPulseLen));
+		} else if (packet.type==TAMAUDP_BTN) {
+			pendingBtn = packet.d.btn.btnNo;
 		}
 	}
+}
+
+int udpPollBtn() {
+	int b = pendingBtn;
+	pendingBtn = -1;
+	return b;
 }
 
 void udpExit() {

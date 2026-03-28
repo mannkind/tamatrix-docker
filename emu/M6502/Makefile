@@ -1,6 +1,6 @@
 OBJS := ConDebug.o Debug.o M6502.o
 TARGET := libM6502.a
-CFLAGS := -ggdb -O2 -march=native
+CFLAGS := -ggdb -O2
 
 ifeq ("$(PROF)","use")
 LDFLAGS+= -fprofile-use
